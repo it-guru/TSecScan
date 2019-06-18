@@ -1,29 +1,38 @@
 [CmdletBinding()]
 param(
-   [string]$Config = "d:\etc\w5sharescan.ini",
-   [string]$DatabaseDir = "c:\etc\w5sharescan.ini",
-   [string]$ExportDir = "c:\etc\w5sharescan.ini",
+   [string]$Config = "\etc\OpenShares.ini",
+   [string]$DatabaseDir = "\tmp",
+   [string]$ExportDir = "\tmp",
    [long]$MaxWorkTime = 3600,
    [long]$PackSize = 3000
 )
 
-$MyDir = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
-Write-Host "Path      : '$MyDir'";
-$env:PSModulePath = $env:PSModulePath + ';'+$MyDir+'';
+$MyDir  =[System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
+$MyApp  =[System.IO.Path]::GetFileName($MyInvocation.MyCommand.Name)
+$MyDrive=Split-Path -Path $MyDir -Qualifier
+$MyName =Split-Path -Path $MyApp -Leaf
+Set-Location $MyDrive
+$env:PSModulePath = $env:PSModulePath + ';'+$MyDir+'\..\PowerLib';
+Import-Module -Name ScanKernel
+
+Write-Log "Start $MyName";
+
+Write-Log "Path        : '$MyDir'";
+Write-Log "Drive       : '$MyDrive'";
+
+Import-Module -Name Recon
+Import-Module -Name ConfigFile
+
+Import-ConfigFile -Ini -ErrorAction Stop -ConfigFilePath $Config
 
 
-Import-Module -Name Recon 
-Import-Module -Name ConfigFile 
-
-Import-ConfigFile -Ini -ErrorAction Stop -ConfigFilePath $Config 
 
 $StartDate=Get-Date;
 $TimedOut=$false;
 
-Write-Host "Tmp         : '$DatabaseDir'"
-Write-Host "ExportDir   : '$ExportDir'"
-Write-Host "MaxWorkTime : '$MaxWorkTime'"
-Write-Host ""
+Write-Log "DatabaseDir : '$DatabaseDir'"
+Write-Log "ExportDir   : '$ExportDir'"
+Write-Log "MaxWorkTime : '$MaxWorkTime'"
 
 if ( -not (Test-Path $DatabaseDir) ){
    Write-Error "Directory Tmp='$DatabaseDir' not exists"
@@ -56,10 +65,9 @@ function Start-HostScan {
             $nodefileno++; 
             $linecount=0;
             $nodefilename="$DatabaseDir\RawNetComputer_{0:d3}.tmp" -f $nodefileno;
-            $d=Get-Date -Format "yyyyMMdd-HH:mm:ss"  
-            $s="{0} Start writing {1} width {2} max entries" `
-                   -f $d,$nodefilename,$PackSize;
-            Write-Host $s;
+            $s="Start writing {0} width {1} max entries" `
+                   -f $nodefilename,$PackSize;
+            Write-Log $s;
             if ( Test-Path $nodefilename ){
                Remove-Item $nodefilename;
             }
@@ -76,7 +84,7 @@ function Start-HostScan {
       Move-Item -Force -Path $nodefilename -Destination $finename
    }
    if (-not ($TimedOut)){
-      Write-Host "start cleanup"
+      Write-Log "start cleanup"
       for(;$nodefileno -lt 1000;$nodefileno++){
          $nodefilefilter="$DatabaseDir\RawNetComputer_{0:d3}.*" -f $nodefileno;
          Get-Item $nodefilefilter | Remove-Item -Force 
@@ -112,6 +120,7 @@ function Process-NetComputerFile {
           }
        } > $tmpfile
        $fineinfile=$InFile -replace "^Raw","";
+       Write-Log "move $tmpfile to $fineinfile"
        Move-Item -Force -Path $tmpfile -Destination $fineinfile
     }
 }
@@ -123,9 +132,8 @@ function Start-ResolvIPAddresses {
        $OutFile=$f -replace "RawNetComputer_","ComputerIP_";
        $OutFile=$OutFile -replace ".txt$",".csv";
        
-       $d=Get-Date -Format "yyyyMMdd-HH:mm:ss"  
-       $s="{0} Start processing {1}" -f $d,$f;
-       Write-Host $s;
+       $s="Start processing {0}" -f $f;
+       Write-Log $s;
        Process-NetComputerFile -InFile $f -OutFile $OutFile;
    }
    Get-Item "$ExportDir\ComputerIP_*.csv" | Remove-Item -Force
