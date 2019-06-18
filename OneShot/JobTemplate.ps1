@@ -35,7 +35,7 @@ Write-Log "MaxWorkTime : '$MaxWorkTime'"
 
 $OutFile="$ExportDir\OneShot.csv";
 if ( -not (Test-Path $OutFile)){
-   Set-Content $OutFile -Value ("SecToken;ScanDate;IPAddress;TreadRules" + `
+   Set-Content $OutFile -Value ("SecToken;ScanDate;IPAddress;TreatRules" + `
                                 ";SecItem;SecCampaign");
    "SampleToken01;2000-01-01 00:00:00;"+ `
    "1.2.3.4;IgnoreFinding;SAMPLE01;"+ `
