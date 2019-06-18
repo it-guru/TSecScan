@@ -87,11 +87,15 @@ for($fnum=0;$fnum -le 9999; $fnum++){
             $networkspec=$csvline[0];
             Write-Log "start Processing $($networkspec) to $OutFile.csv1";
             Write-Output $networkspec | foreach-object {
-               Write-Output $_ | & 'nmap' --max-retries 3 --host-timeout 10s --min-rtt-timeout 2000ms --initial-rtt-timeout 2000ms -v -oG - -iL -  -p $Ports
+               Write-Output $_ | & 'nmap' --min-rtt-timeout 2000ms `
+                                          -initial-rtt-timeout 2000ms `
+                                          -v -oG - -iL -  `
+                                          -p $Ports
             } | foreach-object {
               if (-not ($_ -match "Status: Down")){
                  if ($_ -match "Ports:"){
-                    $l=[regex]::split($_,"(\s*Host:\s*|\s*Ports:\s*)") | foreach-object {
+                    $l=[regex]::split($_,"(\s*Host:\s*|\s*Ports:\s*)") | `
+                                                           foreach-object {
                        $_.trim();
                     };
                     $rec = new-object System.Collections.Hashtable
@@ -100,7 +104,8 @@ for($fnum=0;$fnum -le 9999; $fnum++){
                        $rec.Add($k,$l[$i+1]);
                     }
                     if ($rec.Host -match "[()]"){
-                       $rec.DnsName=[regex]::replace($rec.Host,"^.* \((.+)\).*$",'$1');
+                       $rec.DnsName=[regex]::replace($rec.Host, `
+                                                     "^.* \((.+)\).*$",'$1');
                        $rec.Host=$rec.Host -replace " .*$","";
                     }
                     Write-Output "$($rec.Host);$($rec.DnsName);$($rec.Ports)";
@@ -121,9 +126,9 @@ if (-not ($TimedOut)){
    Get-Item "$DB\Network\Nodes_*.csv1" | Remove-Item -Force
 }
 
-Get-Item "$ExportDir\ListenerScan_*.csv" | Remove-Item -Force
+Get-Item "$ExportDir\NetworkNodes_*.csv" | Remove-Item -Force
 $d=Get-Date -Format "yyyyMMdd-HHmmss";
-$OutFile="$ExportDir\ListenerScan_$d.csv";
+$OutFile="$ExportDir\NetworkNodes_$d.csv";
 Set-Content $OutFile -Value "Host;DNSName;Ports";
 Get-Content "$DB\Network\Nodes_*.csv" | Add-Content $OutFile
 

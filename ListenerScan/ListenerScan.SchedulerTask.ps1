@@ -1,7 +1,7 @@
 param(
    [string]$Config     = "\etc\SchedulerTask.ini",
-   [string]$User       = "\tmp",
-   [string]$Password   = "\tmp"
+   [string]$LocalAdminUser          = "nobody",
+   [string]$LocalAdminUserPassword  = "nopass"
 )
 
 $MyDir  =[System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
@@ -22,10 +22,9 @@ Import-Module -Name ConfigFile
 
 Import-ConfigFile -Ini -ErrorAction Stop -ConfigFilePath $Config
 
+Write-Log "User        : '$LocalAdminUser'";
 
-Write-Log "User        : '$User'";
-
-$taskName="TestTask"
+$taskName="TSecScan-ListenerScan"
 
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -like $taskName }
 
@@ -47,11 +46,12 @@ $TaskSettings= New-ScheduledTaskSettingsSet -ExecutionTimeLimit $maxduration;
 $nTask=Register-ScheduledTask -TaskName $TaskName `
                        -Trigger $TaskTrigger `
                        -Settings $TaskSettings `
-                       -User $User -Password $Password `
+                       -User $LocalAdminUser -Password $LocalAdminUserPassword `
                        -Action $TaskAction;
 
 $nTask.Triggers.Repetition.Duration="P1D";
 $nTask.Triggers.Repetition.Interval ="PT4H";
 
-$n=$nTask | Set-ScheduledTask -Password $Password -User $User
+$n=$nTask | Set-ScheduledTask -Password $LocalAdminUserPassword `
+                              -User $LocalAdminUser
 
