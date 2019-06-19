@@ -189,7 +189,7 @@ function Start-ShareAnalyse {
    Get-Item "$ExportDir\ShareData_*.csv" | Remove-Item -Force
    $d=Get-Date -Format "yyyyMMdd-HHmmss";
    $OutFile="$ExportDir\ShareData_$d.csv";
-   Set-Content $OutFile -Value ("SecToken;ScanDate;HostName;TreadRules" + `
+   Set-Content $OutFile -Value ("SecToken;ScanDate;HostName;TreatRules" + `
                                 ";SecItem"+ `
                                 ";ShareName;Share"+ `
                                 ";foundItems;foundFiles");

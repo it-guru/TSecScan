@@ -45,7 +45,7 @@ The max. time to start of processing new files is set by $MaxWorkTime .
   $ExportDir\ShareData*.csv
   SecToken    : A token (unique string) to find/detect recurring SecItems.
   ScanDate    : The UTC timestamp, the record was detected.
-  TreadRules  : Tags, how the entry should be handled as comma seperated
+  TreatRules  : Get Tags, how to treat the finding as comma seperated
                 list:
 
                 - EnforceRemove      = The problem must be remove/cleared 
@@ -63,6 +63,12 @@ The max. time to start of processing new files is set by $MaxWorkTime .
                 
                 - IsDSGVOcompromised = Query responsible, if DSGVO has been
                                        compromised by the case.
+
+                - TreatTarget7d      = 7 days to treat the finding
+
+                - TreatTarget28d     = 28 days to treat the finding
+
+                - TreatTarget90d     = 90 days to treat the finding
  
 
 

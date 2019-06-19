@@ -119,7 +119,8 @@ function Process-NetComputerFile {
              Write-Output $NetComputer;
           }
        } > $tmpfile
-       $fineinfile=$InFile -replace "^Raw","";
+       $fineinfile=$InFile -replace "RawNetComputer","NetComputer";
+       Write-Log "InFile $InFile";
        Write-Log "move $tmpfile to $fineinfile"
        Move-Item -Force -Path $tmpfile -Destination $fineinfile
     }

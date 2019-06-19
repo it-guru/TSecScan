@@ -80,7 +80,7 @@ for($fnum=1;$fnum -le 9999; $fnum++){
                $networkspec=$csvline[0];
                Write-Log "start Processing $($networkspec) to $OutFile.csv1";
                Write-Output $networkspec | foreach-object {
-                   & 'rdpscan' $_ | foreach-object {
+                   & 'rdpscan' --workers 200 $_ | foreach-object {
                       $l=[regex]::split($_," - ");
                       $treatRules="IgnoreFinding";
                       if ($l[1] -match "VULNERABLE"){
