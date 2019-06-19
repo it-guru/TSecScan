@@ -39,8 +39,7 @@ $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -like $taskName }
 if ($taskExists){
    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
 }
-$repeat = (New-TimeSpan -Hours 4)
-$maxduration = (New-TimeSpan -Hours 4)
+$maxduration = (New-TimeSpan -Hours 6)
 
 $cmd="-ExecutionPolicy Bypass -NoProfile ""& "+ `
      "'$MyDir\$MyJobname.ps1' "+ `
@@ -61,7 +60,7 @@ $nTask=Register-ScheduledTask -TaskName $TaskName `
                        -Action $TaskAction;
 
 $nTask.Triggers.Repetition.Duration="P1D";
-$nTask.Triggers.Repetition.Interval ="PT4H";
+$nTask.Triggers.Repetition.Interval ="PT24H";
 
 $n=$nTask | Set-ScheduledTask -Password $Password -User $User
 
