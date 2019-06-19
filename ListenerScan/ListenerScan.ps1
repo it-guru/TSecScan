@@ -74,23 +74,26 @@ if ( -not (Test-Path "$DB\Network")){
 
 $NetList=Get-Content $NetworksFile;
 
-for($fnum=0;$fnum -le 9999; $fnum++){
+for($fnum=1;$fnum -le 9999; $fnum++){
    $OutFile="$DB\Network\Nodes_{0:d4}" -f $fnum;
    $now=Get-Date;
    if ((New-TimeSpan -Start $StartDate -End $now).TotalSeconds -gt $MaxWorkTime){
       $TimedOut=$true;
    }
    else{
-      if ($NetList[$fnum]){
-         $csvline=$NetList[$fnum].split(";");
+      if ($NetList[$fnum-1]){
+         $csvline=$NetList[$fnum-1].split(";");
          if ( -not (Test-Path "$OutFile.csv1")){
             $networkspec=$csvline[0];
             Write-Log "start Processing $($networkspec) to $OutFile.csv1";
             Write-Output $networkspec | foreach-object {
                Write-Output $_ | & 'nmap' --min-rtt-timeout 2000ms `
-                                          -initial-rtt-timeout 2000ms `
+                                          --initial-rtt-timeout 2000ms `
+                                          --min-parallelism 1024 `
+                                          --host-timeout 60s `
+                                          -Pn `
                                           -v -oG - -iL -  `
-                                          -p $Ports
+                                          -p $Ports 2> $null
             } | foreach-object {
               if (-not ($_ -match "Status: Down")){
                  if ($_ -match "Ports:"){
