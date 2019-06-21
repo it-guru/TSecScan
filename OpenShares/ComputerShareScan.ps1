@@ -59,14 +59,14 @@ function Process-NetComputerFile {
 function Start-ShareScan {
    $inset=$true;
    for($fno=1;$fno -lt 1000;$fno++){
-      $f="$DatabaseDir\ComputerIP_{0:d3}.txt" -f $fno;
+      $f="$DatabaseDir\NetComputer_{0:d3}.txt" -f $fno;
       $OutFile="$DatabaseDir\ComputerShare_{0:d3}" -f $fno;
       if ($inset){
          if (Test-Path($f)){
-            $s="Start processing {0}" -f $d,$f;
-            Write-Log $s;
+            Write-Log ("Start processing {0}" -f $f);
             Process-NetComputerFile -InFile $f -OutFile "$OutFile.tmp";
             Move-Item -Force -Path "$OutFile.tmp" -Destination "$OutFile.csv"
+            Write-Log ("End processing {0}" -f $f);
          }
          else{
             $inset=$false;
