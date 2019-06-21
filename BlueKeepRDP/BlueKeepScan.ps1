@@ -4,7 +4,7 @@ param(
    [string]$DB         = "\tmp",
    [string]$AddPath    = $null, 
    [string]$ExportDir  = "\tmp",
-   [long]$MaxWorkTime = 3600
+   [long]$MaxWorkTime = 7200
 )
 
 $MyDir  =[System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
@@ -80,7 +80,7 @@ for($fnum=1;$fnum -le 9999; $fnum++){
                $networkspec=$csvline[0];
                Write-Log "start Processing $($networkspec) to $OutFile.csv1";
                Write-Output $networkspec | foreach-object {
-                   & 'rdpscan' --workers 200 $_ | foreach-object {
+                   & 'rdpscan' --workers 300 $_ | foreach-object {
                       $l=[regex]::split($_," - ");
                       $treatRules="IgnoreFinding";
                       if ($l[1] -match "VULNERABLE"){
@@ -105,6 +105,7 @@ for($fnum=1;$fnum -le 9999; $fnum++){
                                 -Destination "$OutFile.csv1"
                Copy-Item -Force -Path "$OutFile.csv1" `
                                 -Destination "$OutFile.csv"
+               Write-Log "finish file $OutFile.csv"
             }
          }
          else{
