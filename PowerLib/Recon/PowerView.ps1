@@ -9254,7 +9254,7 @@ function Invoke-XxXThreadedFunction {
     [CmdletBinding()]
     param(
         [Parameter(Position=0,Mandatory=$True)]
-        [String[]]
+        [Object[]]
         $ComputerName,
 
         [Parameter(Position=1,Mandatory=$True)]
