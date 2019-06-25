@@ -36,18 +36,18 @@ Write-Log "MaxWorkTime : '$MaxWorkTime'"
 $OutFile="$ExportDir\OneShot.csv";
 if ( -not (Test-Path $OutFile)){
    Set-Content $OutFile -Value ("SecToken;ScanDate;IPAddress;TreatRules" + `
-                                ";SecItem;SecCampaign");
+                                ";SecItem;SecCampaign;SecDetailSpec");
    "SampleToken01;2000-01-01 00:00:00;"+ `
    "1.2.3.4;IgnoreFinding;SAMPLE01;"+ `
-   "OneShot Campaign" | Add-Content $OutFile
+   "OneShot Campaign;" | Add-Content $OutFile
 
    "SampleToken02;2000-01-01 00:00:00;"+ `
    "1.1.2.2 33.44.55.66;IgnoreFinding;SAMPLE01;"+ `
-   "OneShot Campaign" | Add-Content $OutFile
+   "OneShot Campaign;" | Add-Content $OutFile
 
    "SampleToken03 [FE80:0000:0000:0000:0202:B3FF:FE1E:8329]:80;"+ `
    "2000-01-01 01:00:00;"+ `
    "FE80:0000:0000:0000:0202:B3FF:FE1E:8329;IgnoreFinding;SAMPLE03;"+ `
-   "OneShot Campaign" | Add-Content $OutFile
+   "OneShot Campaign;" | Add-Content $OutFile
 }
 
