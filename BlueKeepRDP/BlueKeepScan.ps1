@@ -64,7 +64,7 @@ if ( -not (Test-Path "$DB\BlueKeep")){
 
 
 
-for($fnum=1;$fnum -le 99; $fnum++){
+for($fnum=1;$fnum -le 9999; $fnum++){
    $InFile="$DB\Network\Nodes_{0:d4}" -f $fnum;
    $OutFile="$DB\BlueKeep\BlueKeep_{0:d4}" -f $fnum;
    $now=Get-Date;
@@ -85,7 +85,7 @@ for($fnum=1;$fnum -le 99; $fnum++){
                if ($plst -match "3389/open"){
                   Write-Output $csvline[0];
                }
-            } | & 'rdpscan' --workers 300 --file - | foreach-object {
+            } | & 'rdpscan' --workers 200 --file - | foreach-object {
                $l=[regex]::split($_," - ");
                $treatRules="IgnoreFinding";
                if ($l[1] -match "VULNERABLE"){
