@@ -4,7 +4,7 @@ param(
    [string]$DB         = "\tmp",
    [string]$AddPath    = $null, 
    [string]$ExportDir  = "\tmp",
-   [long]$MaxWorkTime = 7200
+   [long]$MaxWorkTime = 3600
 )
 
 $MyDir  =[System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
@@ -63,9 +63,9 @@ if ( -not (Test-Path "$DB\BlueKeep")){
 }
 
 
-$NetList=Get-Content $NetworksFile;
 
-for($fnum=1;$fnum -le 9999; $fnum++){
+for($fnum=1;$fnum -le 99; $fnum++){
+   $InFile="$DB\Network\Nodes_{0:d4}" -f $fnum;
    $OutFile="$DB\BlueKeep\BlueKeep_{0:d4}" -f $fnum;
    $now=Get-Date;
    if ((New-TimeSpan -Start $StartDate -End $now).TotalSeconds `
@@ -74,39 +74,38 @@ for($fnum=1;$fnum -le 9999; $fnum++){
    }
    else{
       if (-not ($TimedOut)){
-         if ($NetList[$fnum-1]){
-            $csvline=$NetList[$fnum-1].split(";");
-            if ( -not (Test-Path "$OutFile.csv1")){
-               $networkspec=$csvline[0];
-               Write-Log "start Processing $($networkspec) to $OutFile.csv1";
-               Write-Output $networkspec | foreach-object {
-                   & 'rdpscan' --workers 300 $_ | foreach-object {
-                      $l=[regex]::split($_," - ");
-                      $treatRules="IgnoreFinding";
-                      if ($l[1] -match "VULNERABLE"){
-                         $treatRules="EnforceRemove";
-                      }
-                      $token="BlueKeep:$($l[0]):RDP";
-                      $ipaddr=$l[0];
-                      if (-not ($ipaddr -eq "")){
-                         $d=(Get-Date).ToUniversalTime().ToString(`
-                            "yyyy-MM-dd HH:mm:ss");
-#                         Write-Host ("$token;$d;"+ `
-#                                       "$ipaddr;$treatRules;BLUEKEEP001;"+ `
-#                                       "BlueKeep");
-                         Write-Output ("$token;$d;"+ `
-                                       "$ipaddr;$treatRules;BLUEKEEP001;"+ `
-                                       "BlueKeep");
-                      }
-
-                 }
-               }  > "$OutFile.tmp"
-               Move-Item -Force -Path "$OutFile.tmp" `
-                                -Destination "$OutFile.csv1"
-               Copy-Item -Force -Path "$OutFile.csv1" `
-                                -Destination "$OutFile.csv"
-               Write-Log "finish file $OutFile.csv"
-            }
+         if (Test-Path "$InFile.csv"){
+            Write-Log "start Processing to $OutFile.csv1";
+            Get-Content "$InFile.csv" | foreach-object {
+               $csvline=$_.split(";");
+               $pline=$csvline[2];
+               $pline=
+               $pline=[regex]::replace($csvline[2], "^.*:","");
+               $plst=$pline.split(",");
+               if ($plst -match "3389/open"){
+                  Write-Output $csvline[0];
+               }
+            } | & 'rdpscan' --workers 300 --file - | foreach-object {
+               $l=[regex]::split($_," - ");
+               $treatRules="IgnoreFinding";
+               if ($l[1] -match "VULNERABLE"){
+                  $treatRules="EnforceRemove";
+               }
+               $token="BlueKeep:$($l[0]):RDP";
+               $ipaddr=$l[0];
+               if (-not ($ipaddr -eq "")){
+                  $d=(Get-Date).ToUniversalTime().ToString(`
+                     "yyyy-MM-dd HH:mm:ss");
+                  Write-Output ("$token;$d;"+ `
+                                "$ipaddr;$treatRules;BLUEKEEP001;"+ `
+                                "BlueKeep");
+               }
+            }  > "$OutFile.tmp"
+            Move-Item -Force -Path "$OutFile.tmp" `
+                             -Destination "$OutFile.csv1"
+            Copy-Item -Force -Path "$OutFile.csv1" `
+                             -Destination "$OutFile.csv"
+            Write-Log "finish file $OutFile.csv"
          }
          else{
             Get-Item "$OutFile.*" | Remove-Item
