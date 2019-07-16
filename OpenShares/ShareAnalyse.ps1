@@ -49,6 +49,22 @@ function CleanupJobList {
    
 }
 
+function tmpFilename {
+   $s=-join ((65..90)+(97..122) | Get-Random -Count 20 | % {[char]$_})+".tmp";
+   return $s;
+}
+
+function set-touch {
+   try{
+      set-content -Path ($args[0]) -Force -Value ($null);
+      remove-item -Path ($args[0]) -Force;
+   }
+   catch{ 
+      return $false
+   } 
+   return $true
+}
+
 function Process-ShareFileAnalyse {
     Param (
         [Parameter(ValueFromPipeline=$True)]
@@ -73,6 +89,9 @@ function Process-ShareFileAnalyse {
 
           $foundItems=0;
           $foundFiles=0;
+          $foundDirs=0;
+          $foundWrFiles=0;
+          $foundWrDirs=0;
 
           if ($Exclude.Contains($Share)){
              return @{
@@ -94,6 +113,11 @@ function Process-ShareFileAnalyse {
           Get-ChildItem -Path $ComputerName | Foreach-Object {
              $chk1++;
           }
+          $tmpName=tmpFilename;
+          if (set-touch($ComputerName+"\"+$tmpName)){
+             $foundWrDirs++;
+          }
+
           if ($chk1 -gt 0){
              Get-ChildItem -Path $ComputerName -Recurse -Force -Depth $Depth `
                            | Foreach-Object {
@@ -101,6 +125,14 @@ function Process-ShareFileAnalyse {
                 if ( -not ($_.Attributes  `
                            -band [System.IO.FileAttributes]::Directory) ){
                    $foundFiles++;
+                }
+                else{
+                   $foundDirs++;
+                   $tmpfile=tmpFilename;
+                   if (set-touch(-join($_.fullname,"\",$tmpfile))){
+                      $foundWrDirs++;
+                   }
+
                 }
              }
           }
@@ -111,6 +143,9 @@ function Process-ShareFileAnalyse {
              'Share'=$Share
              'foundItems'=$foundItems
              'foundFiles'=$foundFiles
+             'foundDirs'=$foundDirs
+             'foundWrFiles'=$foundWrFiles
+             'foundWrDirs'=$foundWrDirs
              'scanDate'=$d
           }
           $j=Start-Job -ScriptBlock $chkCode;
@@ -136,13 +171,18 @@ function Process-ShareFileAnalyse {
                                   -ScriptParameters $ScriptParams `
                                   -Threads 100 | Foreach-Object {
           if ($_.foundItems){
+             $TreadRules="GetStatement";
+             if ($_.foundWrDirs){
+                $TreadRules="EnforceRemove";
+             }
              $SecToken="OpenShare:$($_.ShareName)".replace("\","_");
              $csvline="";
              $csvline+="$SecToken;$($_.scanDate);$($_.HostName)";
-             $csvline+=";EnforceRemove, GetStatement";
+             $csvline+=";$TreadRules";
              $csvline+=";OPENSHARE001";
              $csvline+=";$($_.ShareName);$($_.Share)";
              $csvline+=";$($_.foundItems);$($_.foundFiles)";
+             #$csvline+=";$($_.foundDirs)";
              Write-Output "$csvline" >> $DatabaseDirOutFile
           }
        }
