@@ -74,7 +74,7 @@ for($fnum=1;$fnum -le 9999; $fnum++){
    }
    else{
       if (-not ($TimedOut)){
-         if (Test-Path "$InFile.csv"){
+         if ((Test-Path "$InFile.csv") -and -not (Test-Path "$OutFile.csv1")){
             Write-Log "start Processing to $OutFile.csv1";
             Get-Content "$InFile.csv" | foreach-object {
                $csvline=$_.split(";");
