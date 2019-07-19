@@ -128,11 +128,12 @@ function Process-ShareFileAnalyse {
                 }
                 else{
                    $foundDirs++;
-                   $tmpfile=tmpFilename;
-                   if (set-touch(-join($_.fullname,"\",$tmpfile))){
-                      $foundWrDirs++;
+                   if ($foundWrDirs -lt 10 ){ # check if dir is writeable
+                      $tmpfile=tmpFilename;
+                      if (set-touch(-join($_.fullname,"\",$tmpfile))){
+                         $foundWrDirs++;
+                      }
                    }
-
                 }
              }
           }
