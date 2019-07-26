@@ -9269,6 +9269,10 @@ function Invoke-XxXThreadedFunction {
         [ValidateRange(1,100)] 
         $Threads = 20,
 
+        [Int]
+        [ValidateRange(10,21600)] 
+        $Timeout = 21600,
+
         [Switch]
         $NoImports
     )
@@ -9356,9 +9360,11 @@ function Invoke-XxXThreadedFunction {
 
                 $o = New-Object Management.Automation.PSDataCollection[Object]
 
+                $sw = [system.diagnostics.stopwatch]::startNew()
                 $Jobs += @{
                     PS = $p
                     Output = $o
+                    sw = $sw
                     Result = $method.Invoke($p, @($null, [Management.Automation.PSDataCollection[Object]]$o))
                 }
             }
@@ -9371,6 +9377,14 @@ function Invoke-XxXThreadedFunction {
         Do {
             ForEach ($Job in $Jobs) {
                 $Job.Output.ReadAll()
+                if ($Job.sw){
+                   If ($Job.sw.Elapsed.TotalSeconds -gt $Timeout){
+                      #Write-Host "timeout on $Job"
+                      $Job.PS.Stop(); 
+                      $Job.PS.Dispose(); 
+                      $Job.sw=$null;
+                   }
+                }
             }
         } While (($Jobs | Where-Object { ! $_.Result.IsCompleted }).Count -gt 0)
 
