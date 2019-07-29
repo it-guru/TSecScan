@@ -137,6 +137,11 @@ for($fnum=1;$fnum -le 9999; $fnum++){
                      $line+=":8080";
                      Write-Output $line;
                   }
+                  if ($plst -match "1080/open"){
+                     $line=$csvline[0];
+                     $line+=":1080";
+                     Write-Output $line;
+                  }
                 } > "$OutFile.in"
                 if ((Get-Item "$OutFile.in").length -gt 0kb){ 
                     $ipList=Get-Content "$OutFile.in"
