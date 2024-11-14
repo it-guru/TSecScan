@@ -1,3 +1,7 @@
-Processflow:
-https://drive.google.com/file/d/1LdoyiUQ6BFViZOm3xvhRpUP7b8VqBMbo/view
+
+__Dieses Powershell Script-Packet wird nicht mehr gepflegt!__
+
+__This Powershell script package is no longer maintained!__
+
+
 
